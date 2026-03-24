@@ -136,7 +136,12 @@ function Invoke-PvwaApi {
     if ($Token) { $headers["Authorization"] = $Token }
 
     $params = @{ Uri = $uri; Method = $Method; Headers = $headers }
-    if ($Body) { $params["Body"] = ($Body | ConvertTo-Json -Depth 10) }
+    if ($Body) {
+        # ConvertTo-Json in PS 5.1 unwraps single-element arrays into objects.
+        # Explicitly wrap in an array and force JSON array output.
+        $bodyArr = @($Body)
+        $params["Body"] = "[$( ($bodyArr | ForEach-Object { $_ | ConvertTo-Json -Depth 10 -Compress }) -join ',' )]"
+    }
 
     try {
         return Invoke-RestMethod @params
@@ -229,7 +234,7 @@ function Set-AccountPlatform {
             value = $NewPlatformId
         }
     )
-    Invoke-PvwaApi -Method PATCH -Endpoint "Accounts/$AccountId" -Token $Token -Body $patchBody | Out-Null
+    Invoke-PvwaApi -Method PATCH -Endpoint "Accounts/$AccountId/" -Token $Token -Body $patchBody | Out-Null
 }
 
 ###############################################################################
