@@ -141,7 +141,7 @@ function Invoke-PvwaApi {
     try {
         return Invoke-RestMethod @params
     } catch {
-        $detail = $_.ErrorDetails.Message ?? $_.Exception.Message
+        $detail = if ($_.ErrorDetails.Message) { $_.ErrorDetails.Message } else { $_.Exception.Message }
         throw "API [$Method $Endpoint] failed: $detail"
     }
 }
@@ -279,7 +279,7 @@ foreach ($row in $rows) {
     }
 
     $currentPlatform = $acct.platformId
-    $accountName     = $acct.name       ?? "$($acct.userName)@$($acct.address)"
+    $accountName     = if ($acct.name) { $acct.name } else { "$($acct.userName)@$($acct.address)" }
     $safeName        = $acct.safeName
 
     Write-Log "  Name     : $accountName"
